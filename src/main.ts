@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import { Soduko } from './components/type'
+import { X90, X91, bi2ij } from './components/utils'
 Object.defineProperty(Object.prototype, 'xx', {
   get() {
     console.log(this)
@@ -9,7 +11,7 @@ Object.defineProperty(Object.prototype, 'xx', {
   },
 })
 
-window.game1 = [
+const game1 = [
   [
     {
       v: '2',
@@ -353,7 +355,7 @@ window.game1 = [
     },
   ],
 ]
-window.game2 = [
+const game2 = [
   [
     {
       v: '2',
@@ -859,4 +861,25 @@ window.game2 = [
     },
   ],
 ]
+
+const d = X90.map(() =>
+  X90.map(() => ({
+    v: '',
+    maybe: new Set(X91),
+  })),
+)
+
+export const soduko: Soduko = (game1 && d) as Soduko
+soduko.forEach((blk, blkIdx) => {
+  blk.forEach((item, itemIdx) => {
+    const { i, j } = bi2ij([blkIdx, itemIdx])
+    item.maybeDel = new Set()
+    item.blk = blkIdx
+    item.item = itemIdx
+    item.i = i
+    item.j = j
+  })
+})
+;(window as any).soduko = soduko
+
 createApp(App).mount('#app')

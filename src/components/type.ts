@@ -13,3 +13,4 @@ export type Item = {
 }
 
 export type Items = Item[]
+export type Soduko = Items[]
