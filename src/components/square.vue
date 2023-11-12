@@ -1,32 +1,42 @@
 <script setup lang="ts">
 import { Item } from './type'
+import { X91 } from './utils'
 
-defineProps<{ item: Item }>()
+defineProps<{ item: Item; clickValue: String }>()
 </script>
 
 <template>
   <div class="square" tabindex="1" @keydown="(e) => $emit('key', e.key)">
-    <div v-if="item.v" class="item" style="font-size: 50px">{{ item.v }}</div>
+    <div
+      v-if="item.v"
+      @click="() => $emit('clickX', item.v)"
+      :style="{
+        fontSize: '50px',
+        backgroundColor: clickValue == item.v ? '#b0b0cf' : '',
+      }"
+    >
+      {{ item.v }}
+    </div>
 
     <div
       v-else
-      class="maybe"
       :style="{
         background: item.maybe.size === 0 ? 'red' : '',
       }"
     >
       <div
-        v-for="n of 9"
+        @click="() => $emit('clickX', n)"
+        v-for="n of X91"
         :style="{
-          opacity: item.maybe.has(n + '') ? 1 : 0,
-          color:
-            item.maybe.size === 1 || item.resolveRow === n + '' || item.resolveCol === n + ''
-              ? 'red'
-              : '',
-          borderTop: item.resolveRow === n + '' ? '1px solid red' : '',
-          borderBottom: item.resolveRow === n + '' ? '1px solid red' : '',
-          borderLeft: item.resolveCol === n + '' ? '1px solid red' : '',
-          borderRight: item.resolveCol === n + '' ? '1px solid red' : '',
+          opacity: item.maybe.has(n) || item.maybeDel.has(n) ? 1 : 0,
+          backgroundColor: clickValue == n ? '#b0b0cf' : '',
+        }"
+        :class="{
+          resolveL: item.resolveL === n,
+          resolveRow: item.resolveRow === n,
+          resolveCol: item.resolveCol === n,
+          resolveBlc: item.resolveBlc === n,
+          resolve1: item.maybeDel.has(n),
         }"
       >
         {{ n }}
@@ -35,23 +45,42 @@ defineProps<{ item: Item }>()
   </div>
 </template>
 
-<style scoped>
+<style lang="postcss">
 .square {
+  padding: 1px;
   aspect-ratio: 1;
   width: 33.33%;
   border: 1px solid #aaa;
   box-sizing: border-box;
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    > div {
+      box-sizing: border-box;
+      width: 33.33%;
+    }
+  }
 }
-.maybe,
-.item {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
+.resolveL {
+  color: red;
 }
-.maybe > div {
-  width: 33.33%;
+.resolveRow {
+  border-top: 1px solid red;
+  border-bottom: 1px solid red;
+}
+.resolveCol {
+  border-left: 1px solid red;
+  border-right: 1px solid red;
+}
+.resolveBlc {
+  outline: 1px solid blue;
+}
+.resolve1 {
+  text-decoration: line-through;
+  background: lightgrey;
 }
 </style>
