@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import { Item } from './type'
+import { Item, Config, Resolves } from './type'
 import { X91 } from './utils'
 
-defineProps<{ item: Item; clickValue: String }>()
+const props = defineProps<{ item: Item; hoverValue: string; show: Config; resolves: Resolves }>()
+
+function shows(resolveType: string, item: Item, n: string) {
+  return {
+    [resolveType]:
+      props.show[resolveType] &&
+      props.resolves
+        .filter((e) => e.resolveItem === item && e.resolveType === resolveType)
+        .some((e) => e.resolveValue === n),
+  }
+}
 </script>
 
 <template>
   <div class="square" tabindex="1" @keydown="(e) => $emit('key', e.key)">
     <div
       v-if="item.v"
-      @click="() => $emit('clickX', item.v)"
+      @mouseenter="() => $emit('hover', item.v)"
       :style="{
         fontSize: '50px',
-        backgroundColor: clickValue == item.v ? '#b0b0cf' : '',
+        backgroundColor: hoverValue == item.v ? '#b0b0cf' : '',
       }"
     >
       {{ item.v }}
@@ -25,18 +35,18 @@ defineProps<{ item: Item; clickValue: String }>()
       }"
     >
       <div
-        @click="() => $emit('clickX', n)"
+        @mouseenter="() => $emit('hover', n)"
         v-for="n of X91"
         :style="{
-          opacity: item.maybe.has(n) || item.maybeDel.has(n) ? 1 : 0,
-          backgroundColor: clickValue == n ? '#b0b0cf' : '',
+          opacity: item.maybe.has(n) ? 1 : 0,
+          backgroundColor: hoverValue == n ? '#b0b0cf' : '',
         }"
         :class="{
-          resolveL: item.resolveL === n,
-          resolveRow: item.resolveRow === n,
-          resolveCol: item.resolveCol === n,
-          resolveBlc: item.resolveBlc === n,
-          resolve1: item.maybeDel.has(n),
+          ...shows('resolveL', item, n),
+          ...shows('resolveBlc', item, n),
+          ...shows('resolveRow', item, n),
+          ...shows('resolveCol', item, n),
+          ...shows('resolve1', item, n),
         }"
       >
         {{ n }}
@@ -45,39 +55,47 @@ defineProps<{ item: Item; clickValue: String }>()
   </div>
 </template>
 
-<style lang="postcss">
+<style lang="less">
 .square {
   padding: 1px;
   aspect-ratio: 1;
   width: 33.33%;
   border: 1px solid #aaa;
-  box-sizing: border-box;
   > div {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     width: 100%;
+    aspect-ratio: 1;
     height: 100%;
     > div {
-      box-sizing: border-box;
       width: 33.33%;
+      aspect-ratio: 1;
     }
   }
 }
-.resolveL {
-  color: red;
+
+div:has(> [class*='resolve']) {
+  border: 5px solid red;
 }
-.resolveRow {
-  border-top: 1px solid red;
-  border-bottom: 1px solid red;
+[class*='resolve'] {
+  color: white;
+  background: red;
+  font-weight: 900;
+}
+// block:has(> div > div > .resolveBlc) {
+//   border: 5px solid red;
+// }
+.resolveBlc {
+  // outline: 1px solid blue;
+  color: white;
+  background: red;
+  font-weight: 900;
 }
 .resolveCol {
   border-left: 1px solid red;
   border-right: 1px solid red;
-}
-.resolveBlc {
-  outline: 1px solid blue;
 }
 .resolve1 {
   text-decoration: line-through;
