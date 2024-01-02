@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@vueuse/core':
     specifier: ^10.6.0
@@ -972,3 +968,7 @@ packages:
     name: yallist
     version: 4.0.0
     dev: true
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false

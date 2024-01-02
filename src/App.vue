@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef } from 'vue'
-import { soduko } from './main'
+import { mutationItemValue, soduko } from './main'
 import square from './components/square.vue'
 import { Config, Item, Items, Resolves } from './components/type'
 import {
@@ -45,44 +45,13 @@ function keys(b: number, i: number, key: string) {
   getAllResolve()
 }
 
-function mutationItemValue(type: 'delete' | 'add', val: string, blk: number, blkIdx: number) {
-  const item = soduko[blk][blkIdx]
-  // if (item.v) debugger
-  item.v = val
-
-  // 同块
-  soduko[blk].forEach((e) => {
-    mutation(type, e)
-  })
-
-  // 同行
-  Array(9)
-    .fill(0)
-    .map((_, idx) => {
-      const [q, w] = ij2bi([item.i, idx])
-      mutation(type, soduko[q][w])
-    })
-
-  // 同列
-  Array(9)
-    .fill(0)
-    .map((_, idx) => {
-      const [q, w] = ij2bi([idx, item.j])
-      mutation(type, soduko[q][w])
-    })
-
-  function mutation(type: 'delete' | 'add', ele: Item) {
-    ele.maybe[type](val)
-  }
-}
-
 const resolves: Resolves = []
 
 getAllResolve()
 function getAllResolve() {
   clearArr(resolves)
 
-  getResolveL()
+  resolves.push(...getResolveL())
   getResolveR()
   getResolve1()
   // getResolve12 // 试错 如果填入其中一个maybe 检查棋盘 如果报错 说明这里不能填这个 排除之
@@ -90,25 +59,13 @@ function getAllResolve() {
   updata.value++
 
   function getResolveL() {
-    allItems()
-      .filter((e) => !e.v)
-      .forEach((resolveItem) => {
-        const size = resolveItem.maybe.size
-
-        if (size === 1) {
-          resolves.push({
-            resolveType: 'resolveL',
-            resolveItem,
-            resolveValue: [...resolveItem.maybe][0],
-          })
-        }
-
-        if (DEV) {
-          if (size === 0) {
-            console.log('--0', resolveItem)
-          }
-        }
-      })
+    return allItems()
+      .filter((item) => !item.v && item.maybe.size === 1)
+      .map((item) => ({
+        resolveItem: item,
+        resolveType: 'resolveL',
+        resolveValue: [...item.maybe][0],
+      }))
   }
 
   function getResolveR() {
@@ -116,9 +73,11 @@ function getAllResolve() {
       const allMaybes = getItemsMaybes(line)
       const resolveMaybes = allMaybes.filter((e) => allMaybes.filter((ee) => e === ee).length === 1)
 
-      const resolveType = ({ blk: 'resolveBlc', row: 'resolveRow', col: 'resolveCol' } as const)[
-        line.type
-      ]
+      const resolveType = ({ blk: 'resolveBlc', row: 'resolveRow', col: 'resolveCol' } as const)[line.type!]
+
+      line
+        .map((resolveItem) => [resolveItem, getCommonElement(resolveMaybes, [...resolveItem.maybe])] as const)
+        .filter(([resolveItem, resolveValue]) => !resolveItem.v && resolveValue) //
 
       line
         .filter((e) => !e.v)

@@ -7,11 +7,10 @@ export type Item = {
   j: number
 
   maybe: Set<string>
-  maybeDel: Set<string>
 }
 
 export type Items = Item[]
-export type Line = Items & { type: 'blk' | 'row' | 'col' }
+export type Line = Items & { type?: 'blk' | 'row' | 'col' }
 export type Soduko = Line[]
 
 export type Config = { [s: string]: boolean }

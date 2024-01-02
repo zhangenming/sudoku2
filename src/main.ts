@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import { Soduko } from './components/type'
-import { X90, X91, bi2ij } from './components/utils'
+import { Item, Soduko } from './components/type'
+import { X90, X91, allItems, bi2ij, ij2bi } from './components/utils'
 Object.defineProperty(Object.prototype, 'xx', {
   get() {
     console.log(this)
@@ -14,7 +14,7 @@ const game0 = X90.map(() =>
   X90.map(() => ({
     v: '',
     maybe: new Set(X91),
-  })),
+  }))
 )
 
 const game1 = [
@@ -1376,23 +1376,62 @@ const game3 = [
   ],
 ]
 
-export const soduko: Soduko = game3 as Soduko
-soduko.forEach((blk, blkIdx) => {
-  blk.forEach((item, itemIdx) => {
-    const { i, j } = bi2ij([blkIdx, itemIdx])
-    item.blk = blkIdx
-    item.item = itemIdx
-    item.i = i
-    item.j = j
-    if (Array.isArray(item.maybe)) {
-      item.maybe = new Set(item.maybe)
+const game = location.hash.slice(1)
+export const soduko: Soduko = X90.map((blk) => {
+  return X90.map((item) => {
+    const { i, j } = bi2ij([blk, item])
+
+    const v = game[i * 9 + j]
+    return {
+      v: v === '0' || v === '.' ? '' : v,
+      i,
+      j,
+      blk,
+      item,
+
+      maybe: new Set(X91),
     }
   })
 })
 ;(window as any).soduko = soduko
+
+allItems().forEach(({ v, blk, item }) => {
+  mutationItemValue('delete', v, blk, item)
+})
 
 createApp(App, {
   // compilerOptions: {
   //   isCustomElement: (tag) => tag.xx == 'block',
   // },
 }).mount('#app')
+
+export function mutationItemValue(type: 'delete' | 'add', val: string, blk: number, blkIdx: number) {
+  const item = soduko[blk][blkIdx]
+  // if (item.v) debugger
+  item.v = val
+
+  // 同块
+  soduko[blk].forEach((e) => {
+    mutation(type, e)
+  })
+
+  // 同行
+  Array(9)
+    .fill(0)
+    .map((_, idx) => {
+      const [q, w] = ij2bi([item.i, idx])
+      mutation(type, soduko[q][w])
+    })
+
+  // 同列
+  Array(9)
+    .fill(0)
+    .map((_, idx) => {
+      const [q, w] = ij2bi([idx, item.j])
+      mutation(type, soduko[q][w])
+    })
+
+  function mutation(type: 'delete' | 'add', ele: Item) {
+    ele.maybe[type](val)
+  }
+}
